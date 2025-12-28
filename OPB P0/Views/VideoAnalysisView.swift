@@ -15,7 +15,8 @@ struct VideoAnalysisView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedItem: PhotosPickerItem?
-    @State private var showMetrics = true
+    @State private var showMetrics = false
+    @State private var showJointAngles = false
     @State private var showSpeedControl = false
     
     var body: some View {
@@ -40,6 +41,12 @@ struct VideoAnalysisView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showMetrics.toggle() }) {
                         Image(systemName: showMetrics ? "gauge.high" : "gauge.low")
+                    }
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { showJointAngles.toggle() }) {
+                        Image(systemName: showJointAngles ? "chart.bar.fill" : "chart.bar")
                     }
                 }
             }
@@ -104,14 +111,21 @@ struct VideoAnalysisView: View {
             VStack {
                 Spacer()
                 
-                // Performance metrics
-                if showMetrics {
-                    HStack {
+                HStack(alignment: .bottom, spacing: 12) {
+                    // Performance metrics
+                    if showMetrics {
                         PerformanceMetricsView(metrics: viewModel.performanceMetrics)
-                        Spacer()
                     }
-                    .padding()
+                    
+                    Spacer()
+                    
+                    // Joint angles
+                    if showJointAngles, let pose = viewModel.currentPose {
+                        JointAngleOverlayView(poseData: pose)
+                    }
                 }
+                .padding(.horizontal)
+                .padding(.bottom, 8)
                 
                 // Playback controls
                 playbackControls
