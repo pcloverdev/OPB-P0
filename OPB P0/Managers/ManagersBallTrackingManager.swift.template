@@ -1,0 +1,193 @@
+//
+//  BallTrackingManager.swift (TEMPLATE - NOT IMPLEMENTED)
+//  OPB P0
+//
+//  Created by Patrick Clover on 12/28/25.
+//
+//  This is a template file for implementing ball tracking in the next iteration.
+//  Uncomment and implement when ready to add ball detection.
+
+/*
+import Foundation
+import Vision
+import AVFoundation
+import CoreImage
+
+/// Manages basketball detection and tracking
+class BallTrackingManager: NSObject, ObservableObject {
+    
+    // MARK: - Published Properties
+    @Published var detectedBalls: [BallData] = []
+    @Published var trackingError: Error?
+    
+    // MARK: - Detection Approach Options
+    
+    // Option 1: Vision Framework Object Detection
+    // Use VNDetectObjectRectanglesRequest or custom Core ML model
+    
+    // Option 2: Color-based Detection
+    // Track orange color in HSV color space
+    
+    // Option 3: Custom Core ML Model
+    // Train a model specifically for basketball detection
+    
+    // MARK: - Vision Request (Option 1)
+    /*
+    private lazy var ballDetectionRequest: VNCoreMLRequest = {
+        // Load your custom Core ML model here
+        // let model = try? YourBallDetectionModel(configuration: MLModelConfiguration())
+        // let visionModel = try? VNCoreMLModel(for: model.model)
+        // return VNCoreMLRequest(model: visionModel) { [weak self] request, error in
+        //     self?.handleBallDetection(request: request, error: error)
+        // }
+    }()
+    */
+    
+    // MARK: - Processing Queue
+    private let processingQueue = DispatchQueue(label: "com.onepercent.balltracking", qos: .userInitiated)
+    private var isProcessing = false
+    
+    // MARK: - Initialization
+    override init() {
+        super.init()
+    }
+    
+    // MARK: - Ball Detection
+    
+    /// Detect basketball in a video frame
+    func detectBall(in sampleBuffer: CMSampleBuffer) {
+        // Skip if already processing
+        guard !isProcessing else { return }
+        
+        isProcessing = true
+        
+        processingQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            defer { self.isProcessing = false }
+            
+            // IMPLEMENTATION APPROACHES:
+            
+            // Approach 1: Vision Framework
+            // - Use VNDetectRectanglesRequest for initial shape detection
+            // - Filter for circular shapes
+            // - Validate by color (orange)
+            
+            // Approach 2: Color Segmentation
+            // - Convert to HSV color space
+            // - Create mask for orange color range
+            // - Find contours in mask
+            // - Filter by size and circularity
+            
+            // Approach 3: Custom ML Model
+            // - Use a trained Core ML model
+            // - Process frame through model
+            // - Parse results for ball location and confidence
+        }
+    }
+    
+    // MARK: - Ball Trajectory Tracking
+    
+    /// Track ball movement over time for shot arc analysis
+    func trackTrajectory(ballData: BallData) {
+        // Store historical positions
+        // Calculate velocity and acceleration
+        // Predict trajectory
+        // Detect shot release point
+        // Measure shot arc angle
+    }
+    
+    // MARK: - Utility
+    
+    func reset() {
+        detectedBalls.removeAll()
+        trackingError = nil
+    }
+}
+
+// MARK: - Ball Data Model
+
+struct BallData: Identifiable {
+    let id = UUID()
+    let position: CGPoint       // Ball center in normalized coordinates
+    let radius: CGFloat         // Ball radius in normalized coordinates
+    let confidence: Float       // Detection confidence (0-1)
+    let timestamp: TimeInterval // Frame timestamp
+    let velocity: CGVector?     // Optional velocity vector
+}
+
+// MARK: - Shot Trajectory Analysis
+
+struct ShotTrajectory {
+    let startTime: TimeInterval
+    let releasePoint: CGPoint
+    let releaseAngle: Double    // Angle in degrees
+    let peakHeight: CGPoint     // Highest point of arc
+    let arcHeight: Double       // Height of shot arc
+    let outcome: ShotOutcome?   // Make/Miss (if detectable)
+}
+
+enum ShotOutcome {
+    case make
+    case miss
+    case rimOut
+    case airball
+    case unknown
+}
+
+// MARK: - Implementation Notes
+
+/*
+ RECOMMENDED APPROACH FOR PHASE 2:
+ 
+ 1. Start with color-based detection (simplest, fastest)
+    - HSV color space: H: 5-25, S: 100-255, V: 100-255 for orange
+    - Use Core Image filters or accelerate framework
+    - Good for controlled environments with consistent lighting
+ 
+ 2. Add motion-based filtering
+    - Track moving objects
+    - Filter by expected basketball size and motion characteristics
+    - Reduces false positives
+ 
+ 3. Train a custom Core ML model (most accurate)
+    - Collect dataset of basketball shots from various angles
+    - Use Create ML or external tools (YOLOv8, etc.)
+    - Export to Core ML format
+    - Integrate into Vision framework pipeline
+ 
+ INTEGRATION WITH EXISTING CODE:
+ 
+ 1. In CameraViewModel:
+    let ballTrackingManager = BallTrackingManager()
+    
+ 2. Coordinate with PoseDetectionManager:
+    - Run ball tracking in parallel with pose detection
+    - Correlate ball position with wrist position to detect release
+    
+ 3. Create BallOverlayView:
+    - Similar to PoseOverlayView
+    - Draw circle around detected ball
+    - Draw trajectory line if tracking over time
+ 
+ 4. Extend PerformanceMetrics:
+    - Add ball detection confidence
+    - Track ball detection FPS
+    - Monitor false positive rate
+ 
+ PERFORMANCE CONSIDERATIONS:
+ 
+ - Ball tracking may reduce overall FPS
+ - Consider alternating frames (pose on odd, ball on even)
+ - Or reduce pose detection frequency when ball is tracked
+ - Target: maintain 20+ FPS with both systems running
+ 
+ TESTING RECOMMENDATIONS:
+ 
+ - Test in various lighting conditions
+ - Test with different ball colors (orange, brown, red)
+ - Test with multiple moving objects (avoid false positives)
+ - Test occluded shots (ball behind player)
+ - Validate shot arc calculations with ground truth
+*/
+*/
