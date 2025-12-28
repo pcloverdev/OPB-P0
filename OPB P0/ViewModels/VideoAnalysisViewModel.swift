@@ -22,6 +22,7 @@ class VideoAnalysisViewModel: ObservableObject {
     @Published var currentPose: PoseData?
     @Published var isProcessing = false
     @Published var error: Error?
+    @Published var playbackSpeed: Float = 1.0
     
     // MARK: - Managers
     let poseDetectionManager = PoseDetectionManager()
@@ -36,6 +37,9 @@ class VideoAnalysisViewModel: ObservableObject {
     private var imageGenerator: AVAssetImageGenerator?
     private var lastProcessedTime: CMTime = .zero
     private let minimumFrameInterval: TimeInterval = 1.0 / 15.0 // Process at most 15 FPS
+    
+    // MARK: - Frame Rate
+    private var videoFrameRate: Double = 30.0 // Default, will be updated when video loads
     
     // MARK: - Computed Properties
     var performanceMetrics: PerformanceMetrics {
@@ -61,10 +65,16 @@ class VideoAnalysisViewModel: ObservableObject {
         let asset = AVAsset(url: url)
         self.asset = asset
         
-        // Load duration
+        // Load duration and frame rate
         do {
             let loadedDuration = try await asset.load(.duration)
             duration = loadedDuration.seconds
+            
+            // Load video frame rate
+            if let videoTrack = try? await asset.loadTracks(withMediaType: .video).first {
+                let nominalFrameRate = try await videoTrack.load(.nominalFrameRate)
+                videoFrameRate = Double(nominalFrameRate)
+            }
         } catch {
             self.error = error
             return
@@ -124,6 +134,17 @@ class VideoAnalysisViewModel: ObservableObject {
         isPlaying.toggle()
     }
     
+    /// Set playback speed
+    func setPlaybackSpeed(_ speed: Float) {
+        guard let player = player else { return }
+        playbackSpeed = speed
+        
+        // Only update rate if currently playing
+        if isPlaying {
+            player.rate = speed
+        }
+    }
+    
     /// Seek to a specific time
     func seek(to time: Double) {
         guard let player = player else { return }
@@ -135,6 +156,20 @@ class VideoAnalysisViewModel: ObservableObject {
         Task {
             await processCurrentFrame()
         }
+    }
+    
+    /// Step forward by one frame
+    func stepForward() {
+        let frameDuration = 1.0 / videoFrameRate
+        let newTime = min(duration, currentTime + frameDuration)
+        seek(to: newTime)
+    }
+    
+    /// Step backward by one frame
+    func stepBackward() {
+        let frameDuration = 1.0 / videoFrameRate
+        let newTime = max(0, currentTime - frameDuration)
+        seek(to: newTime)
     }
     
     // MARK: - Frame Processing

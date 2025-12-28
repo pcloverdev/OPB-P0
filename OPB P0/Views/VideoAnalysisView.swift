@@ -16,6 +16,7 @@ struct VideoAnalysisView: View {
     
     @State private var selectedItem: PhotosPickerItem?
     @State private var showMetrics = true
+    @State private var showSpeedControl = false
     
     var body: some View {
         ZStack {
@@ -146,31 +147,95 @@ struct VideoAnalysisView: View {
                 .foregroundStyle(.secondary)
             }
             
-            // Play/Pause button
-            HStack(spacing: 32) {
+            // Frame-by-frame and playback controls
+            HStack(spacing: 20) {
+                // Step backward one frame
+                Button(action: {
+                    viewModel.stepBackward()
+                }) {
+                    Image(systemName: "backward.frame.fill")
+                        .font(.title3)
+                }
+                .help("Previous frame")
+                
+                // Skip backward 1 second
                 Button(action: {
                     viewModel.seek(to: max(0, viewModel.currentTime - 1))
                 }) {
                     Image(systemName: "gobackward")
                         .font(.title2)
                 }
+                .help("Back 1 second")
                 
+                // Play/Pause
                 Button(action: {
                     viewModel.togglePlayback()
                 }) {
                     Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                         .font(.title)
+                        .frame(width: 44, height: 44)
                 }
+                .help(viewModel.isPlaying ? "Pause" : "Play")
                 
+                // Skip forward 1 second
                 Button(action: {
                     viewModel.seek(to: min(viewModel.duration, viewModel.currentTime + 1))
                 }) {
                     Image(systemName: "goforward")
                         .font(.title2)
                 }
+                .help("Forward 1 second")
+                
+                // Step forward one frame
+                Button(action: {
+                    viewModel.stepForward()
+                }) {
+                    Image(systemName: "forward.frame.fill")
+                        .font(.title3)
+                }
+                .help("Next frame")
             }
+            
+            // Playback speed control
+            HStack(spacing: 12) {
+                Image(systemName: "gauge.with.dots.needle.bottom.50percent")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Button(action: { viewModel.setPlaybackSpeed(0.25) }) {
+                    speedButton(speed: 0.25)
+                }
+                
+                Button(action: { viewModel.setPlaybackSpeed(0.5) }) {
+                    speedButton(speed: 0.5)
+                }
+                
+                Button(action: { viewModel.setPlaybackSpeed(1.0) }) {
+                    speedButton(speed: 1.0)
+                }
+                
+                Button(action: { viewModel.setPlaybackSpeed(1.5) }) {
+                    speedButton(speed: 1.5)
+                }
+                
+                Button(action: { viewModel.setPlaybackSpeed(2.0) }) {
+                    speedButton(speed: 2.0)
+                }
+            }
+            .padding(.top, 4)
         }
         .padding()
+    }
+    
+    // MARK: - Speed Button Helper
+    
+    private func speedButton(speed: Float) -> some View {
+        Text(speed == 1.0 ? "1×" : "\(speed, specifier: "%.2g")×")
+            .font(.caption.bold())
+            .foregroundStyle(viewModel.playbackSpeed == speed ? .white : .primary)
+            .frame(width: 40, height: 28)
+            .background(viewModel.playbackSpeed == speed ? Color.blue : Color.secondary.opacity(0.2))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
     }
     
     // MARK: - Video Loading

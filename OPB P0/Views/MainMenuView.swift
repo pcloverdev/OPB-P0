@@ -30,7 +30,7 @@ struct MainMenuView: View {
                             .font(.system(size: 80))
                             .foregroundStyle(.white)
                         
-                        Text("One Percent Better")
+                        Text("One Percent\nBetter")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
                             .multilineTextAlignment(.center)
                             .foregroundStyle(.white)
