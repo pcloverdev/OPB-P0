@@ -46,7 +46,7 @@ struct PerformanceMetricsView: View {
             }
         }
         .padding()
-        .background(.ultraThinMaterial)
+        .background(.black.opacity(0.3))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
     

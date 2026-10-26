@@ -17,7 +17,8 @@ struct VideoAnalysisView: View {
     @State private var selectedItem: PhotosPickerItem?
     @State private var showMetrics = false
     @State private var showJointAngles = false
-    @State private var showSpeedControl = false
+    @State private var showControls = true
+    @State private var hideControlsTask: Task<Void, Never>?
     
     var body: some View {
         ZStack {
@@ -40,17 +41,18 @@ struct VideoAnalysisView: View {
             if viewModel.getPlayer() != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showMetrics.toggle() }) {
-                        Image(systemName: showMetrics ? "gauge.high" : "gauge.low")
+                        Image(systemName: showMetrics ? "gauge.with.needle.fill" : "gauge.with.needle")
                     }
                 }
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showJointAngles.toggle() }) {
-                        Image(systemName: showJointAngles ? "chart.bar.fill" : "chart.bar")
+                        Image(systemName: showJointAngles ? "ruler.fill" : "ruler")
                     }
                 }
             }
         }
+        .toolbarBackground(showControls ? .visible : .hidden, for: .navigationBar)
         .onChange(of: selectedItem) { _, newItem in
             Task {
                 await loadVideo(from: newItem)
@@ -107,6 +109,13 @@ struct VideoAnalysisView: View {
                     .ignoresSafeArea()
             }
             
+            // Tap to toggle controls
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    toggleControls()
+                }
+            
             // Controls overlay
             VStack {
                 Spacer()
@@ -128,9 +137,25 @@ struct VideoAnalysisView: View {
                 .padding(.bottom, 8)
                 
                 // Playback controls
-                playbackControls
-                    .padding()
-                    .background(.ultraThinMaterial)
+                if showControls {
+                    playbackControls
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: showControls)
+        }
+        .onAppear {
+            // Auto-hide controls after 3 seconds when video starts playing
+            if viewModel.isPlaying {
+                scheduleControlsHide()
+            }
+        }
+        .onChange(of: viewModel.isPlaying) { _, isPlaying in
+            if isPlaying {
+                scheduleControlsHide()
+            } else {
+                showControls = true
+                cancelControlsHide()
             }
         }
     }
@@ -239,6 +264,42 @@ struct VideoAnalysisView: View {
             .padding(.top, 4)
         }
         .padding()
+        .background(.ultraThinMaterial)
+    }
+    
+    // MARK: - Control Visibility
+    
+    private func toggleControls() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showControls.toggle()
+        }
+        
+        if showControls && viewModel.isPlaying {
+            scheduleControlsHide()
+        } else {
+            cancelControlsHide()
+        }
+    }
+    
+    private func scheduleControlsHide() {
+        cancelControlsHide()
+        
+        hideControlsTask = Task {
+            try? await Task.sleep(for: .seconds(3))
+            
+            guard !Task.isCancelled else { return }
+            
+            await MainActor.run {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showControls = false
+                }
+            }
+        }
+    }
+    
+    private func cancelControlsHide() {
+        hideControlsTask?.cancel()
+        hideControlsTask = nil
     }
     
     // MARK: - Speed Button Helper

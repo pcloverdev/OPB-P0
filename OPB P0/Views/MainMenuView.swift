@@ -11,6 +11,7 @@ import SwiftUI
 struct MainMenuView: View {
     @State private var showCamera = false
     @State private var showVideoAnalysis = false
+    @State private var showWorkouts = false
     
     var body: some View {
         NavigationStack {
@@ -26,11 +27,11 @@ struct MainMenuView: View {
                 VStack(spacing: 40) {
                     // App branding
                     VStack(spacing: 16) {
-                        Image(systemName: "figure.basketball")
+                        Image(systemName: "basketball")
                             .font(.system(size: 80))
                             .foregroundStyle(.white)
                         
-                        Text("One Percent\nBetter")
+                        Text("1% Better")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
                             .multilineTextAlignment(.center)
                             .foregroundStyle(.white)
@@ -42,6 +43,14 @@ struct MainMenuView: View {
                     
                     // Menu buttons
                     VStack(spacing: 24) {
+                        MenuButton(
+                            title: "Start a Workout",
+                            icon: "figure.basketball",
+                            description: "Work on your skills with curated workuts"
+                        ) {
+                            showWorkouts = true
+                        }
+                        
                         MenuButton(
                             title: "Real-Time Camera",
                             icon: "video.fill",
@@ -62,6 +71,10 @@ struct MainMenuView: View {
     
                     Spacer()
                 }
+            }
+            .navigationDestination(isPresented:
+                $showWorkouts) {
+                WorkoutsView()
             }
             .navigationDestination(isPresented: $showCamera) {
                 CameraView()

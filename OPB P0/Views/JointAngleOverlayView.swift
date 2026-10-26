@@ -105,7 +105,7 @@ struct JointAngleOverlayView: View {
             }
         }
         .padding()
-        .background(.ultraThinMaterial)
+        .background(.black.opacity(0.3))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
     
@@ -276,7 +276,7 @@ struct JointAngleOverlayView: View {
         let cosineAngle = dotProduct / (magnitude1 * magnitude2)
         let angleRadians = acos(max(-1, min(1, cosineAngle))) // Clamp to avoid floating point errors
         
-        return angleRadians * 180 / Double.pi
+        return angleRadians * 180 / .pi
     }
     
     // MARK: - Supporting Types
